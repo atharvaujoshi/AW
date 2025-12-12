@@ -1,0 +1,13 @@
+{
+  "name": "alpha-run-club-timer",
+  "version": "1.0.0",
+  "description": "Dual Group Timer Control System for running races",
+  "main": "index.html",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "netlify dev"
+  }
+}

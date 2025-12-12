@@ -665,6 +665,51 @@
         let activeVolunteer = null; 
         let isAdminLoggedIn = false;
 
+        // --- SUPABASE SYNC ---
+        const API_BASE = '/.netlify/functions';
+        
+        async function saveToSupabase(bibNumber, color, groupNumber, stoppedTime) {
+            try {
+                const response = await fetch(`${API_BASE}/save-leaderboard`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bib_number: bibNumber, color, group_number: groupNumber, stopped_time: stoppedTime })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                return data;
+            } catch (error) {
+                console.error('Error saving to Supabase:', error);
+                alert('Failed to save time to database');
+            }
+        }
+        
+        async function fetchLeaderboardFromSupabase() {
+            try {
+                const response = await fetch(`${API_BASE}/get-leaderboard`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                return data.data || [];
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+                return [];
+            }
+        }
+        
+        async function saveTimerState(groupNumber, waveNumber, isRunning, elapsedTime) {
+            try {
+                const response = await fetch(`${API_BASE}/save-timer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ group_number: groupNumber, wave_number: waveNumber, is_running: isRunning, elapsed_time: elapsedTime })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                return data;
+            } catch (error) {
+                console.error('Error saving timer state:', error);
+            }
+        }
 
         // --- UTILITY FUNCTIONS ---
         function generateAccessCode(group, color) {
@@ -930,6 +975,12 @@
                     waveNumber: waves[group].number,
                     bib: timer.bib // Include the current BIB number
                 });
+                
+                // Save to Supabase
+                if (timer.bib) {
+                    saveToSupabase(timer.bib, colorInfo.name, parseInt(group), timer.elapsed);
+                }
+                
                 renderLeaderboard(); 
                 // --- End Store BIB ---
             }
@@ -1018,17 +1069,33 @@
         }
 
 
-        // --- LEADERBOARD RENDERING (Unified) ---
-        function renderLeaderboard() {
+        // --- LEADERBOARD RENDERING (Unified with Supabase) ---
+        async function renderLeaderboard() {
             const leaderboardContainer = document.getElementById('global-leaderboard');
-            let stoppedTimes = [...globalStoppedTimes]; 
+            
+            // Fetch from Supabase
+            const supabaseData = await fetchLeaderboardFromSupabase();
+            
+            // Combine local and remote data
+            let allTimes = [...globalStoppedTimes];
+            supabaseData.forEach(item => {
+                if (!allTimes.find(t => t.bib === item.bib_number && t.color === item.color && t.timeMs === item.stopped_time)) {
+                    allTimes.push({
+                        group: item.group_number,
+                        color: item.color,
+                        timeMs: item.stopped_time,
+                        bib: item.bib_number,
+                        waveNumber: 0 // Backend doesn't track wave yet
+                    });
+                }
+            });
 
-            if (stoppedTimes.length === 0) {
+            if (allTimes.length === 0) {
                 leaderboardContainer.innerHTML = 'No times recorded.';
                 return;
             }
 
-            stoppedTimes.sort((a, b) => a.timeMs - b.timeMs);
+            allTimes.sort((a, b) => a.timeMs - b.timeMs);
             
             let html = `
                 <table class="leaderboard-table">
@@ -1036,7 +1103,7 @@
                         <tr>
                             <th>Rank</th>
                             <th>BIB</th>
-                            <th>Group-Wave #</th>
+                            <th>Group</th>
                             <th>Color</th>
                             <th>Time</th>
                         </tr>
@@ -1044,13 +1111,13 @@
                     <tbody>
             `;
 
-            stoppedTimes.forEach((item, index) => {
+            allTimes.forEach((item, index) => {
                 const colorData = COLORS.find(c => c.name === item.color);
                 html += `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${item.bib || 'N/A'}</td>
-                        <td>${item.group}-${item.waveNumber}</td>
+                        <td>Group ${item.group}</td>
                         <td style="color: ${colorData.hex}; font-weight: bold;">${item.color}</td>
                         <td class="stopped-time">${formatTime(item.timeMs)}</td>
                     </tr>
