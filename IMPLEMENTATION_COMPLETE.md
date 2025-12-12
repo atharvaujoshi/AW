@@ -22,7 +22,7 @@ netlify/functions/
 ```
 
 ### Configuration Files
-- **supabase-config.txt** - Your API keys (fill in your values)
+- Environment variables (set in Netlify) - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`
 - **netlify.toml** - Netlify build configuration
 - **package.json** - Node.js dependencies
 - **.gitignore** - Prevents secrets from being committed
@@ -47,7 +47,7 @@ netlify/functions/
 1. Go to supabase.com
 2. Sign up and create a project
 3. Copy your 3 API keys
-4. Paste them into supabase-config.txt
+4. Add them as environment variables in Netlify (Site settings → Build & deploy → Environment)
 ```
 
 ### 2️⃣ Create Database Tables (3 minutes)
@@ -120,7 +120,7 @@ Volunteers/Admin (Any Device)
 
 1. **Frontend** - Calls `saveToSupabase()`
 2. **API** - Sends HTTP request to Netlify Function
-3. **Function** - Reads your Supabase keys
+3. **Function** - Reads your Supabase keys from environment variables
 4. **Database** - Saves time to PostgreSQL
 5. **Response** - Returns success
 6. **Leaderboard** - Fetches fresh data from database
@@ -131,7 +131,7 @@ Volunteers/Admin (Any Device)
 ## 🔐 Security
 
 ✅ **Your API keys are safe**
-- Stored in `supabase-config.txt` (in .gitignore)
+-- Stored as environment variables in Netlify (not in the repo)
 - Never exposed to frontend
 - Only Netlify Functions can read them
 - Not committed to GitHub
@@ -165,7 +165,7 @@ Volunteers/Admin (Any Device)
 ### Phase 1: Setup (15 minutes)
 1. ✅ Sign up for Supabase
 2. ✅ Get your API keys
-3. ✅ Fill in supabase-config.txt
+3. ✅ Add your Supabase keys to Netlify environment variables
 4. ✅ Create database tables
 
 ### Phase 2: Deploy (10 minutes)
@@ -192,8 +192,8 @@ Volunteers/Admin (Any Device)
 
 ### Common Issues & Solutions
 
-**"Can't find supabase-config.txt"**
-- Make sure it's in the root folder with your API keys
+**"Missing environment variables"**
+-- Make sure `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are set in Netlify site settings or via Netlify CLI
 
 **"Invalid API keys"**
 - Double-check keys are copied exactly (no extra spaces)

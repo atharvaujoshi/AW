@@ -22,7 +22,7 @@ Your Timer System
 
 ### Configuration (3 files)
 ```
-✅ supabase-config.txt       - Your API keys (fill in!)
+✅ Environment variables (set in Netlify) - Your API keys (set these in Netlify site settings)
 ✅ netlify.toml             - Netlify build config
 ✅ package.json             - Node dependencies
 ```
@@ -70,7 +70,7 @@ Your Timer System
 - [ ] Go to supabase.com
 - [ ] Create project
 - [ ] Copy 3 API keys
-- [ ] Paste in supabase-config.txt
+- [ ] Add them as environment variables in Netlify (Site settings → Build & deploy → Environment)
 
 ### Step 2️⃣ Database (3 min)
 - [ ] Copy supabase-setup.sql code
@@ -120,7 +120,7 @@ Your Timer System
    ↓
 5. HTTP POST to API function
    ↓
-6. Function reads API keys
+6. Function reads Supabase credentials from environment variables
    ↓
 7. Database saves record
    ↓
@@ -144,7 +144,7 @@ Frontend (Public)
     └─ Uses: Public (anon) key only
         ↓
 Netlify Functions (Private)
-    ├─ Reads: Full API keys from config
+   ├─ Reads: Full API keys from environment variables
     ├─ Does: Validation + DB access
     └─ Protects: Secrets from frontend
         ↓

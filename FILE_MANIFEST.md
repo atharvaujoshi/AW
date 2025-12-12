@@ -20,12 +20,12 @@
    └─ Configures: Build commands, function deployment paths
    └─ Status: ✅ READY - Netlify will auto-detect this
 
-📄 supabase-config.txt
-   └─ Purpose: YOUR Supabase API keys (SECRET!)
-   └─ Contains: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY
-   └─ Status: ⚠️ NEEDS YOUR INPUT - Fill in your keys
-   └─ Security: Keep private, in .gitignore, never share
-   └─ Format: KEY=value (one per line, no quotes)
+📄 Environment variables (Netlify)
+   └─ Purpose: Store Supabase API keys securely at runtime
+   └─ Keys: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY
+   └─ Status: ⚠️ NEEDS YOUR INPUT - Set in Netlify site settings
+   └─ Security: Do not commit secrets to repository
+   └─ Notes: Use Netlify site settings or Netlify CLI for local dev
 
 📄 supabase-setup.sql
    └─ Purpose: Database table creation script
@@ -117,7 +117,7 @@
       ├─ 📄 supabase-client.js
       │  └─ Purpose: Shared Supabase connection module
       │  └─ Exports: getSupabaseClient(), getConfig()
-      │  └─ Uses: Reads supabase-config.txt
+      │  └─ Uses: Reads Supabase credentials from environment variables
       │  └─ Status: ✅ READY
       │
       ├─ 📄 save-leaderboard.js
@@ -158,20 +158,20 @@ index.html (main app)
     ├─ Calls: saveToSupabase()
     │   └─ Sends: POST /.netlify/functions/save-leaderboard
     │       └─ Uses: supabase-client.js
-    │           └─ Reads: supabase-config.txt
-    │               └─ Accesses: Supabase Database
+   │           └─ Reads: Supabase credentials from environment variables
+   │               └─ Accesses: Supabase Database
     │
     ├─ Calls: fetchLeaderboardFromSupabase()
     │   └─ Sends: GET /.netlify/functions/get-leaderboard
     │       └─ Uses: supabase-client.js
-    │           └─ Reads: supabase-config.txt
-    │               └─ Accesses: Supabase Database
+   │           └─ Reads: Supabase credentials from environment variables
+   │               └─ Accesses: Supabase Database
     │
     └─ Calls: saveTimerState()
         └─ Sends: POST /.netlify/functions/save-timer
             └─ Uses: supabase-client.js
-                └─ Reads: supabase-config.txt
-                    └─ Accesses: Supabase Database
+               └─ Reads: Supabase credentials from environment variables
+                  └─ Accesses: Supabase Database
 ```
 
 ---
@@ -184,7 +184,7 @@ index.html (main app)
 | netlify/functions/*.js | 2-3 KB each | JavaScript |
 | supabase-setup.sql | 1 KB | SQL |
 | *.md (docs) | 5-15 KB each | Markdown |
-| supabase-config.txt | <1 KB | Text |
+| Environment variables (Netlify) | runtime | Secrets (set in Netlify)
 | netlify.toml | <1 KB | TOML |
 | package.json | <1 KB | JSON |
 | .gitignore | <1 KB | Text |
@@ -194,7 +194,7 @@ index.html (main app)
 
 ## Critical Files You MUST Have
 
-✅ **supabase-config.txt** - With YOUR API keys
+✅ Environment variables (set in Netlify) - With YOUR API keys
 ✅ **netlify/functions/** - All 5 functions
 ✅ **netlify.toml** - Deployment config
 ✅ **package.json** - Dependencies
@@ -225,7 +225,7 @@ index.html (main app)
 ```
 your-project/
 ├── index.html                    (Your app)
-├── supabase-config.txt           (Your secrets)
+├── Environment variables (Netlify)           (Your secrets)
 ├── netlify/functions/            (Your API)
 ├── supabase-setup.sql            (Your database)
 ├── netlify.toml                  (Your config)
@@ -252,8 +252,7 @@ repository/
 ## Deployment Checklist
 
 Before pushing to GitHub:
-- [ ] **supabase-config.txt** is in .gitignore
-- [ ] **supabase-config.txt** has your API keys
+- [ ] Environment variables are configured in Netlify (do not store keys in repo)
 - [ ] **netlify.toml** is unchanged
 - [ ] **package.json** is unchanged
 - [ ] **netlify/functions/** all 5 files present
@@ -341,7 +340,7 @@ node_modules/
 | Category | Status | Count |
 |----------|--------|-------|
 | ✅ Ready to Use | 11 files | JavaScript, HTML, config |
-| ⚠️ Needs Input | 1 file | supabase-config.txt |
+| ⚠️ Needs Input | Environment variables (set in Netlify) |
 | ✅ Ready to Read | 9 files | Documentation |
 | ℹ️ Optional | 1 file | supabase.txt |
 | **TOTAL** | **22 files** | **Complete system** |
@@ -361,7 +360,7 @@ node_modules/
 
 1. ✅ You have all files
 2. ✅ You have all documentation
-3. 👉 **Next:** Fill in supabase-config.txt with your API keys
+3. 👉 **Next:** Set Supabase API keys as Netlify environment variables
 4. 👉 **Then:** Follow QUICK_START.md
 
 ---

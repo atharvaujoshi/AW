@@ -28,7 +28,7 @@
 │ • get-timer.js              │   │                            │
 │ • supabase-client.js        │   └────────────────────────────┘
 │                             │
-│ Reads supabase-config.txt   │
+│ Reads Supabase credentials from environment variables   │
 │ Connects to Supabase        │
 └────────────┬────────────────┘
              │
@@ -66,7 +66,7 @@ stopColor(group, color)
     fetch(/.netlify/functions/save-leaderboard, POST)
         ↓
     Netlify Function executes
-    ├─ Reads supabase-config.txt
+    ├─ Reads Supabase credentials from environment variables
     ├─ Connects to Supabase
     └─ INSERT into leaderboard table
         ↓
@@ -125,7 +125,7 @@ Device A (Volunteer)         Device B (Volunteer)         Device C (Admin)
 ┌──────────────────────────▼──────────────────────────────┐
 │              Netlify Functions (Private)                │
 │              Runs on Netlify servers only               │
-│              Reads full Supabase keys from file         │
+│              Reads full Supabase keys from environment variables         │
 │              Validates all requests                     │
 │              Can't be inspected by users                │
 └──────────────────────────┬──────────────────────────────┘
@@ -138,10 +138,10 @@ Device A (Volunteer)         Device B (Volunteer)         Device C (Admin)
 │            Access controlled by API keys                │
 └─────────────────────────────────────────────────────────┘
 
-Key Files:
-✅ supabase-config.txt     - Server-side only (in .gitignore)
-✅ netlify/functions/*.js  - Server-side only (compiled)
-⚠️  index.html             - Public (but doesn't expose secrets)
+Key Files / Configuration:
+- Netlify environment variables (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`) - server-managed
+- `netlify/functions/*.js`  - Server-side only (compiled)
+- ⚠️  index.html             - Public (but doesn't expose `SERVICE_KEY`)
 ```
 
 ---

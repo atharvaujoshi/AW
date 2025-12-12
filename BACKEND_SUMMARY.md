@@ -14,7 +14,7 @@
    - `netlify/functions/get-timer.js` - GET endpoint to fetch timer state
 
 ### 3. **Configuration**
-   - `supabase-config.txt` - Your Supabase API keys (FILL IN YOUR KEYS HERE)
+   - Environment variables (set in Netlify) - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`
    - `netlify.toml` - Netlify build configuration
    - `package.json` - Node.js dependencies
    - `.gitignore` - Prevents secrets from being committed
@@ -39,7 +39,7 @@
    - Sign up at https://supabase.com
    - Create a project
    - Copy your 3 API keys
-   - Paste them into `supabase-config.txt`
+   - Add them to your Netlify site as environment variables (Site settings → Build & deploy → Environment)
 
 ### 2. **Create Database Tables**
    - In Supabase, go to SQL Editor
@@ -75,8 +75,8 @@ saveToSupabase() called
         ↓
 HTTP POST to /.netlify/functions/save-leaderboard
         ↓
-Netlify Function reads supabase-config.txt
-        ↓
+Netlify Function reads Supabase credentials from environment variables
+   ↓
 Connects to Supabase database
         ↓
 Inserts record into leaderboard table
@@ -90,7 +90,7 @@ Displays live leaderboard with all saved times
 
 ## 🔐 Security
 
-✅ **supabase-config.txt** is in `.gitignore` (won't be committed)
+✅ Environment variables are configured in Netlify (no secrets in repo)
 ✅ API keys are read server-side (safe from exposure)
 ✅ Netlify Functions handle all database access
 ✅ Frontend only makes API calls (never direct DB access)

@@ -6,14 +6,7 @@
 - [ ] Go to https://supabase.com and sign up
 - [ ] Create a new project
 - [ ] Get your 3 API keys (URL, anon key, service key)
-- [ ] Open `supabase-config.txt`
-- [ ] Paste your keys in the format:
-  ```
-  SUPABASE_URL=https://xxxxx.supabase.co
-  SUPABASE_ANON_KEY=sb_publishable_xxxxx
-  SUPABASE_SERVICE_KEY=sb_secret_xxxxx
-  ```
-- [ ] Save the file
+- [ ] Add these keys to your Netlify site as environment variables: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`
 
 ### ✅ Step 2: Create Database (3 min)
 - [ ] In Supabase, go to **SQL Editor**
@@ -48,7 +41,6 @@
 ```
 ✅ index.html                 - Updated with Supabase sync
 ✅ netlify/functions/         - 5 serverless API endpoints
-✅ supabase-config.txt        - Your API keys (KEEP SECRET!)
 ✅ supabase-setup.sql         - Database creation script
 ✅ netlify.toml               - Netlify configuration
 ✅ package.json               - Node dependencies
@@ -80,8 +72,8 @@
 
 ## 🆘 If Something Goes Wrong
 
-### "Error: Configuration file not found"
-→ Make sure `supabase-config.txt` exists in root folder with your keys
+### "Error: Missing environment variables"
+→ Ensure `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are set in Netlify site settings or locally via Netlify CLI
 
 ### "Invalid API key"
 → Double-check your keys are copied correctly (no extra spaces/quotes)
@@ -110,15 +102,12 @@
 
 ## 🔐 Security Reminder
 
-⚠️ Your `supabase-config.txt` is in `.gitignore`
-- This means your secret keys WON'T be committed to GitHub
-- But YOU must never share this file publicly
-- Keep it in your project only
+⚠️ Secrets must not be committed
+- Configure secrets as environment variables in Netlify (do not keep a local file in the repo)
 
 ✅ Best practice:
-- Only your computer has this file
-- Team members connect with their own Supabase keys
-- Production systems use environment variables
+- Store secrets in your hosting provider's env management
+- Use Netlify CLI for local dev env vars
 
 ---
 

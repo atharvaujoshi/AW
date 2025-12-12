@@ -704,12 +704,13 @@
                 // Subscribe to timers changes
                 const timersChannel = supabaseRealtimeClient.channel('realtime:timers')
                   .on('postgres_changes', { event: '*', schema: 'public', table: 'timers' }, payload => {
+                      console.debug('Realtime timers payload received:', payload);
                       const newRow = payload.new;
                       if (!newRow) return;
                       const g = parseInt(newRow.group_number);
                       if (!waves[g]) return;
 
-                      // Apply authoritative values
+                      // Apply authoritative values (best-effort) and then fetch authoritative state
                       if (newRow.wave_number) {
                           waves[g].number = newRow.wave_number;
                           const inputElement = document.getElementById(`wave${g}-number`);
@@ -724,16 +725,21 @@
                           timer.startTime = timer.running ? Date.now() - elapsed : 0;
                       });
                       updateAllTimers(true);
+
+                      // Force a full fetch to ensure consistent state across clients
+                      fetchTimersFromSupabase().catch(e => console.warn('fetchTimersFromSupabase failed after realtime event', e));
                   })
                   .subscribe();
 
                 // Subscribe to leaderboard inserts
-                const lbChannel = supabaseRealtimeClient.channel('realtime:leaderboard')
-                  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leaderboard' }, payload => {
-                      // New leaderboard row inserted; re-render
-                      renderLeaderboard();
-                  })
-                  .subscribe();
+                                const lbChannel = supabaseRealtimeClient.channel('realtime:leaderboard')
+                                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leaderboard' }, payload => {
+                                            console.debug('Realtime leaderboard payload received:', payload);
+                                            // New leaderboard row inserted; fetch leaderboard and re-render
+                                            renderLeaderboard();
+                                            fetchLeaderboardFromSupabase().catch(e => console.warn('fetchLeaderboardFromSupabase failed after realtime event', e));
+                                    })
+                                    .subscribe();
 
                 console.log('Supabase realtime subscriptions registered');
             } catch (err) {

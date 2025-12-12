@@ -1,32 +1,26 @@
 const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const path = require('path');
 
-// Read config from file
+// Use environment variables for Supabase configuration
 function getConfig() {
-  try {
-    const configPath = path.join(__dirname, '../../supabase-config.txt');
-    const config = fs.readFileSync(configPath, 'utf8');
-    const lines = config.split('\n');
-    const result = {};
-    
-    lines.forEach(line => {
-      const [key, value] = line.split('=');
-      if (key && value) {
-        result[key.trim()] = value.trim();
-      }
-    });
-    
-    return result;
-  } catch (error) {
-    console.error('Error reading config:', error);
-    throw new Error('Configuration file not found');
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('Missing Supabase environment variables');
+    throw new Error('Supabase configuration missing in environment variables');
   }
+
+  return {
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_KEY
+  };
 }
 
 function getSupabaseClient() {
   const config = getConfig();
-  return createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+  return createClient(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY || config.SUPABASE_ANON_KEY);
 }
 
 exports.getSupabaseClient = getSupabaseClient;

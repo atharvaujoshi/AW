@@ -63,10 +63,9 @@
 ## 🔧 Configuration Files
 
 ### Required Setup
-- **supabase-config.txt** - Your API keys (fill in your values)
-  - Format: `KEY=value`
-  - Keep this file safe (in .gitignore)
-  - Never commit to GitHub
+- **Environment variables** - Configure runtime secrets in your hosting provider
+   - Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` in Netlify (Site settings → Build & deploy → Environment)
+   - For local development use the Netlify CLI (`netlify env:set`) or export env vars in your shell; do not commit secrets to the repo
 
 ### Build & Deployment
 - **netlify.toml** - Netlify build configuration
@@ -123,7 +122,7 @@ netlify/functions/
 1. Go to supabase.com
 2. Sign up and create project
 3. Get 3 API keys
-4. Fill in supabase-config.txt
+4. Save keys as environment variables in Netlify (see Required Setup)
 
 **Step 2: Create Database (3 min)**
 1. Go to SQL Editor in Supabase
@@ -147,12 +146,11 @@ netlify/functions/
 
 ## 🔐 Security Checklist
 
-- [ ] **supabase-config.txt** is in .gitignore
-- [ ] **supabase-config.txt** is NEVER committed
-- [ ] **API keys** are only used server-side
-- [ ] **.gitignore** is committed to GitHub
+- [ ] **Environment variables** are configured in Netlify (do not store secrets in repo)
+- [ ] **API keys** are only used server-side (keep `SUPABASE_SERVICE_KEY` secret)
 - [ ] **Frontend** has no exposed secrets
 - [ ] **Netlify Functions** validate all inputs
+- [ ] **.gitignore** is committed to GitHub
 - [ ] **Database** has encryption enabled
 
 ---
@@ -224,7 +222,6 @@ Essential files for deployment:
 - [ ] ✅ .gitignore
 - [ ] ✅ netlify/functions/ (5 files)
 - [ ] ✅ supabase-setup.sql
-- [ ] ✅ supabase-config.txt (with your keys)
 
 Documentation files:
 - [ ] ✅ QUICK_START.md

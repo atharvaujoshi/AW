@@ -32,15 +32,16 @@ This setup adds **Supabase** (backend database) and **Netlify Functions** (serve
    - **anon key** (long string starting with `sb_publishable_`)
    - **service_role key** (long string starting with `sb_secret_`)
 
-### 1.3 Fill In Your Config File
-1. Open `supabase-config.txt` in your project folder
-2. Paste your values:
-```
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_xxxxx
-SUPABASE_SERVICE_KEY=sb_secret_xxxxx
-```
-3. **Save the file**
+### 1.3 Configure Environment Variables (No local secrets)
+1. In your Netlify site settings go to **Build & deploy → Environment** and add these variables:
+   - `SUPABASE_URL` = https://xxxxx.supabase.co
+   - `SUPABASE_ANON_KEY` = sb_publishable_xxxxx
+   - `SUPABASE_SERVICE_KEY` = sb_secret_xxxxx
+2. For local testing use the Netlify CLI to set env vars locally:
+   - `netlify env:set SUPABASE_URL https://xxxxx.supabase.co`
+   - `netlify env:set SUPABASE_ANON_KEY sb_publishable_xxxxx`
+   - `netlify env:set SUPABASE_SERVICE_KEY sb_secret_xxxxx`
+3. Do NOT commit secrets to the repository. Rotate keys immediately if they were exposed.
 
 ### 1.4 Create Database Tables
 1. Back in Supabase, go to **SQL Editor** (left sidebar)
@@ -114,18 +115,17 @@ Your site is now live! 🎉
 ```
 your-project/
 ├── index.html                          (Updated with Supabase calls)
-├── supabase-config.txt                 (Your API keys - KEEP SECRET!)
 ├── supabase-setup.sql                  (SQL for creating tables)
 ├── netlify.toml                        (Netlify config)
 ├── package.json                        (Node dependencies)
-├── .gitignore                          (Prevents config from being committed)
+├── .gitignore                          (Prevent committing local secrets)
 └── netlify/
-    └── functions/
-        ├── supabase-client.js          (Shared Supabase connection)
-        ├── save-leaderboard.js         (POST /save-leaderboard)
-        ├── get-leaderboard.js          (GET /get-leaderboard)
-        ├── save-timer.js               (POST /save-timer)
-        └── get-timer.js                (GET /get-timer)
+   └── functions/
+      ├── supabase-client.js          (Shared Supabase connection - reads env vars)
+      ├── save-leaderboard.js         (POST /save-leaderboard)
+      ├── get-leaderboard.js          (GET /get-leaderboard)
+      ├── save-timer.js               (POST /save-timer)
+      └── get-timer.js                (GET /get-timer)
 ```
 
 ---
@@ -150,13 +150,13 @@ netlify dev
 
 ## Troubleshooting
 
-### "Error: Configuration file not found"
-- Make sure `supabase-config.txt` is in the root folder
-- Make sure it has the correct format (no extra spaces)
+### "Error: Environment variables not set"
+- Ensure `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are set in Netlify site settings
+- For local dev, run `netlify env:list` to verify variables or export them in your shell
 
 ### "Invalid access token"
-- Check your Supabase keys in `supabase-config.txt`
-- Make sure they're copied exactly (no extra characters)
+- Verify the values for `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_KEY` in Netlify
+- For local dev ensure env vars are exported in your shell or set via Netlify CLI
 
 ### "Database error: table 'leaderboard' does not exist"
 - Run the SQL setup script again in Supabase
@@ -171,10 +171,9 @@ netlify dev
 ## Security Notes
 
 ⚠️ **Important:**
-- `.gitignore` prevents `supabase-config.txt` from being committed
-- Your `supabase-config.txt` keys are read server-side (safe)
-- Never expose `SUPABASE_SERVICE_KEY` to frontend
-- The `anon` key is public (used for frontend auth)
+- Configure secrets as environment variables in Netlify — do not store them in the repo
+- Keep `SUPABASE_SERVICE_KEY` server-only (never send to browser)
+- The `anon` key is intended for client use but still treat it carefully
 
 ---
 

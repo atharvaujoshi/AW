@@ -16,7 +16,7 @@ Your Alpha Run Club timer system now has a **complete, production-ready backend*
 ## 📋 FILES CREATED: 21 Total
 
 ### Configuration Files (3)
-- ✅ **supabase-config.txt** ← FILL IN YOUR KEYS HERE
+- ✅ **Environment variables** (set in Netlify: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`)
 - ✅ netlify.toml
 - ✅ package.json
 
@@ -62,12 +62,7 @@ Your Alpha Run Club timer system now has a **complete, production-ready backend*
    - SUPABASE_URL
    - SUPABASE_ANON_KEY
    - SUPABASE_SERVICE_KEY
-5. Open supabase-config.txt
-6. Paste the keys:
-   SUPABASE_URL=https://xxxxx.supabase.co
-   SUPABASE_ANON_KEY=sb_publishable_xxxxx
-   SUPABASE_SERVICE_KEY=sb_secret_xxxxx
-7. Save the file
+5. Add the keys to your Netlify site as environment variables (Site settings → Build & deploy → Environment)
 ```
 
 ### Phase 2: Create Database Tables (3 min)
@@ -120,9 +115,9 @@ Netlify:
    - Get your Supabase keys
    - Follow the 4-step checklist
 
-2. **Fill in supabase-config.txt** (1 min)
+2. **Add Supabase keys as environment variables** (1 min)
    - Copy your 3 API keys
-   - Save the file
+   - Set them in Netlify or via Netlify CLI
 
 3. **Run database setup** (3 min)
    - Copy supabase-setup.sql
@@ -172,11 +167,9 @@ Your system is now **production-ready** with:
 ## 🔒 SECURITY CHECKLIST
 
 Before deploying:
-- [ ] **supabase-config.txt** has your API keys
-- [ ] **.gitignore** includes supabase-config.txt
+- [ ] **Environment variables** are set in Netlify (do not store keys in repo)
+- [ ] **.gitignore** is committed to GitHub
 - [ ] **API keys** are NOT in your code
-- [ ] **.gitignore** IS committed to GitHub
-- [ ] **supabase-config.txt** is NOT committed
 
 ---
 

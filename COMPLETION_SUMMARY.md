@@ -16,7 +16,7 @@ Your Alpha Run Club timer system now has a **complete, production-ready backend*
 ### 2. Configuration ✅
 - **netlify.toml** - Deployment config
 - **package.json** - Dependencies
-- **supabase-config.txt** - API keys template (fill in yours)
+- Environment variables (set in Netlify) - Add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`
 - **.gitignore** - Security setup
 
 ### 3. Database ✅
@@ -42,8 +42,8 @@ Your Alpha Run Club timer system now has a **complete, production-ready backend*
 1. Get Supabase keys (5 min)
    └─ Go to supabase.com → Create project → Get API keys
 
-2. Fill in supabase-config.txt (1 min)
-   └─ Paste your 3 API keys
+2. Set Supabase keys as Netlify environment variables (1 min)
+   └─ Add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` in Netlify site settings
 
 3. Create database tables (3 min)
    └─ Copy supabase-setup.sql → Paste in Supabase SQL Editor → Run
@@ -64,7 +64,7 @@ Your Alpha Run Club timer system now has a **complete, production-ready backend*
 ✅ netlify.toml
 ✅ package.json
 ✅ .gitignore
-✅ supabase-config.txt (fill in your keys)
+✅ Environment variables (set in Netlify) - With your API keys
 ✅ supabase-setup.sql
 ✅ netlify/functions/supabase-client.js
 ✅ netlify/functions/save-leaderboard.js
@@ -94,7 +94,7 @@ Your Alpha Run Club timer system now has a **complete, production-ready backend*
 ### Before Tomorrow:
 1. **Open QUICK_START.md**
 2. **Get your Supabase API keys**
-3. **Fill in supabase-config.txt**
+3. **Set Supabase keys as environment variables in Netlify**
 4. **Run database setup**
 5. **Deploy to Netlify**
 
@@ -242,7 +242,7 @@ Your timer system will be **live on the internet** with:
 | Problem | Solution |
 |---------|----------|
 | "Missing API keys" | See QUICK_START.md Step 1 |
-| "Invalid credentials" | Check supabase-config.txt format |
+| "Invalid credentials" | Check environment variable values in Netlify site settings |
 | "Database error" | Re-run supabase-setup.sql |
 | "Deploy failed" | Check Netlify dashboard logs |
 | "Leaderboard empty" | Make sure you stopped a timer |
