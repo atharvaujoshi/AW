@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Group Timer Control System (Odd/Even Waves with BIB)</title>
+    <style>
+        :root {
+            --color-primary: #208c91;
+            --color-secondary: #f5f5f5;
+            --color-text: #1f2121;
+            --color-border: #5e5240;
+            --color-red: #c0152f;
+            --color-green: #228c3d;
+            --color-blue: #2180ff;
+            --color-yellow: #e68161;
+            --color-pink: #ef4899;
+            --spacing: 16px;
+            --radius: 8px;
+            --color-dark: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-secondary);
+            color: var(--color-text);
+            padding: var(--spacing);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: var(--color-primary);
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .view-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 250ms;
+            background: white;
+            border: 2px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .view-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+        
+        /* Admin Login Styling */
+        .login-section {
+            max-width: 400px; 
+            margin: 40px auto; 
+            padding: 20px; 
+            background: white; 
+            border: 2px solid var(--color-primary); 
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .login-section h2 {
+            color: var(--color-dark);
+            margin-bottom: 15px;
+        }
+
+        .login-input-group {
+            display: flex; 
+            gap: 10px; 
+            margin-top: 15px;
+        }
+
+        .login-input-group input {
+            flex: 1; 
+            padding: 10px; 
+            border: 1px solid var(--color-border); 
+            border-radius: 4px; 
+            font-size: 14px;
+        }
+
+        .login-input-group button {
+            padding: 10px 20px; 
+            background: var(--color-primary); 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: 600;
+        }
+        
+        .login-message {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        /* --- */
+
+        .waves-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        /* Main Admin Content Layout */
+        #admin-view .content-wrapper {
+            display: flex;
+            gap: 30px;
+        }
+        
+        #admin-view .timer-controls-area {
+            flex: 2; 
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        #admin-view .leaderboard-area {
+            flex: 1; 
+            background: white;
+            border: 2px solid var(--color-primary);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .wave-panel {
+            background: white;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wave-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .wave-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .wave-number-input {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .wave-number-input input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .colors-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            flex-grow: 1; 
+        }
+
+        .color-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: var(--radius);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .color-indicator {
+            width: 100%;
+            height: 40px;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* Style for the color status selector */
+        .color-status-select {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: 10px;
+            text-align: center;
+            background: white;
+        }
+
+        .color-name {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--color-text);
+            margin-bottom: 4px;
+        }
+        
+        .color-card.na {
+            opacity: 0.6;
+            background: #eee;
+        }
+
+        .timer-display {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            color: var(--color-text);
+            min-height: 24px;
+            margin-top: 4px;
+        }
+
+        /* BIB Input Styling */
+        .bib-input-group {
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+            font-weight: 600;
+            gap: 2px;
+            justify-content: center;
+            color: var(--color-dark);
+        }
+        
+        .bib-input-group input {
+            width: 35px;
+            padding: 2px 1px;
+            border: 1px solid var(--color-border);
+            border-radius: 2px;
+            text-align: center;
+            font-size: 10px;
+            line-height: 1;
+        }
+        /* --- */
+
+        .wave-controls-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--color-border);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; 
+        }
+        
+        .wave-controls-container button {
+            padding: 12px 10px;
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1 1 30%; 
+            transition: all 250ms;
+        }
+        
+        .wave-start-btn {
+            background: var(--color-primary);
+        }
+
+        .wave-reset-btn {
+            background: var(--color-red);
+        }
+        
+        .wave-next-btn {
+            background: var(--color-yellow);
+        }
+        
+        .wave-next-btn:hover:not(:disabled) {
+             background: #c06540;
+        }
+        
+        .wave-start-btn:hover:not(:disabled) {
+            background: #1a6b7a;
+        }
+        
+        .wave-reset-btn:hover:not(:disabled) {
+            background: #9a0f23;
+        }
+
+        .wave-start-btn:disabled, .wave-reset-btn:disabled, .wave-next-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .volunteer-dashboard {
+            background: white;
+            border: 3px solid var(--color-primary);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .volunteer-header {
+            margin-bottom: 30px;
+        }
+
+        .volunteer-wave-number {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .volunteer-color-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .volunteer-color-box {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            border: 3px solid var(--color-border);
+        }
+
+        .volunteer-color-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--color-text);
+        }
+
+        .volunteer-timer {
+            font-size: 48px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: var(--radius);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .volunteer-timer.na-status {
+            background: #ffdbdb;
+            color: var(--color-red);
+        }
+
+        .volunteer-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-volunteer-stop {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 250ms;
+            background: var(--color-red);
+            color: white;
+        }
+
+        .btn-volunteer-stop:hover:not(:disabled) {
+            background: #9a0f23;
+        }
+
+        .btn-volunteer-stop:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .access-code-section {
+            background: #f9f9f9;
+            border: 2px solid var(--color-primary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            grid-column: span 5;
+        }
+
+        .access-code-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .access-code-list {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .access-code {
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: var(--color-text);
+            padding: 5px 10px;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+        }
+        
+        /* Leaderboard Styling */
+        .leaderboard-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .leaderboard-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .leaderboard-table th, .leaderboard-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .leaderboard-table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        .stopped-time {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .reset-all-btn {
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--color-dark);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 250ms;
+        }
+        
+        .reset-all-btn:hover {
+            background: black;
+        }
+        /* --- */
+
+
+        @media (max-width: 1200px) {
+            #admin-view .content-wrapper {
+                flex-direction: column;
+            }
+            .waves-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 900px) {
+            .colors-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏱️ Dual Group Timer Control (Synced)</h1>
+            <p>Admin starts the entire wave. Volunteers stop their individual color timers.</p>
+        </div>
+
+        <div class="view-toggle">
+            <button class="view-btn active" onclick="switchView('admin')" id="admin-toggle">Admin Panel</button>
+            <button class="view-btn" onclick="switchView('volunteer')" id="volunteer-toggle">Volunteer Access</button>
+        </div>
+
+        <div id="admin-login-view" class="content active">
+            <div class="login-section">
+                <h2>Admin Login</h2>
+                <div class="login-input-group">
+                    <input type="password" id="admin-code-input" placeholder="Enter Admin Code" style="flex: 1;">
+                    <button onclick="adminLogin()">Login</button>
+                </div>
+                <div class="login-message" id="admin-login-message">
+                    Enter the admin access code to manage the groups. (Code: **ADMIN123**)
+                </div>
+            </div>
+        </div>
+        <div id="admin-view" class="content">
+            <div class="content-wrapper">
+                
+                <div class="timer-controls-area">
+                    <div class="waves-container">
+                        <div class="wave-panel">
+                            <div class="wave-header">
+                                <div class="wave-title">Group 1 (Odd Waves: 1, 3, 5...)</div>
+                                <div class="wave-number-input">
+                                    <label for="wave1-number">Wave #:</label>
+                                    <input type="number" id="wave1-number" value="1" min="1" onchange="updateWaveNumber(1)">
+                                </div>
+                            </div>
+
+                            <div class="colors-grid" id="wave1-colors">
+                                <div class="access-code-section">
+                                    <div class="access-code-label">Volunteer Access Codes for Group 1</div>
+                                    <div class="access-code-list" id="wave1-access-codes">
+                                        </div>
+                                </div>
+                            </div>
+                            
+                            <div class="wave-controls-container">
+                                <button class="wave-start-btn" onclick="startWave(1)" id="start-wave-btn-1">START GROUP 1</button>
+                                <button class="wave-reset-btn" onclick="resetWave(1)" id="reset-wave-btn-1" disabled>RESET GROUP 1</button>
+                                <button class="wave-next-btn" onclick="incrementGroup(1)" id="next-wave-btn-1" disabled>NEXT WAVE</button>
+                            </div>
+                        </div>
+
+                        <div class="wave-panel">
+                            <div class="wave-header">
+                                <div class="wave-title">Group 2 (Even Waves: 2, 4, 6...)</div>
+                                <div class="wave-number-input">
+                                    <label for="wave2-number">Wave #:</label>
+                                    <input type="number" id="wave2-number" value="2" min="1" onchange="updateWaveNumber(2)">
+                                </div>
+                            </div>
+
+                            <div class="colors-grid" id="wave2-colors">
+                                <div class="access-code-section">
+                                    <div class="access-code-label">Volunteer Access Codes for Group 2</div>
+                                    <div class="access-code-list" id="wave2-access-codes">
+                                        </div>
+                                </div>
+                            </div>
+                            
+                            <div class="wave-controls-container">
+                                <button class="wave-start-btn" onclick="startWave(2)" id="start-wave-btn-2">START GROUP 2</button>
+                                <button class="wave-reset-btn" onclick="resetWave(2)" id="reset-wave-btn-2" disabled>RESET GROUP 2</button>
+                                <button class="wave-next-btn" onclick="incrementGroup(2)" id="next-wave-btn-2" disabled>NEXT WAVE</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-area">
+                    <div class="leaderboard-title">🏆 All-Group Leaderboard (Stopped Times)</div>
+                    <div id="global-leaderboard">No times recorded.</div>
+                    <button class="reset-all-btn" onclick="resetGlobalLeaderboard()">RESET ALL TIMES</button>
+                </div>
+                </div>
+        </div>
+        <div id="volunteer-view" class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2>Volunteer Access</h2>
+                <p style="color: #666; margin-top: 10px;">Enter your access code to view your assigned group and color</p>
+            </div>
+
+            <div style="max-width: 400px; margin: 0 auto; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="access-code-input" placeholder="Enter access code (e.g., 1-RE)" style="flex: 1; padding: 10px; border: 2px solid var(--color-border); border-radius: 4px; font-size: 14px;">
+                    <button onclick="volunteerLogin()" style="padding: 10px 20px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Login</button>
+                </div>
+            </div>
+
+            <div id="volunteer-dashboard-container">
+                <div id="volunteer-dashboard" style="display: none;">
+                    </div>
+            </div>
+
+            <div id="login-message" style="text-align: center; color: #666; margin-top: 20px;">
+                Enter an access code to get started
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION & STATE ---
+        const ADMIN_CODE = "ADMIN123"; 
+        const BIB_PREFIX = "AW"; // Fixed BIB prefix
+
+        const COLORS = [
+            { name: 'Red', hex: '#c0152f', abbr: 'RE' },
+            { name: 'Green', hex: '#228c3d', abbr: 'GR' },
+            { name: 'Blue', hex: '#2180ff', abbr: 'BL' },
+            { name: 'Yellow', hex: '#e68161', abbr: 'YE' },
+            { name: 'Pink', hex: '#ef4899', abbr: 'PI' }
+        ];
+
+        const waves = {
+            1: {
+                number: 1, 
+                timers: {}
+            },
+            2: {
+                number: 2, 
+                timers: {}
+            }
+        };
+        
+        let globalStoppedTimes = [];
+        let intervalId;
+        const volunteers = {};
+        let activeVolunteer = null; 
+        let isAdminLoggedIn = false;
+
+
+        // --- UTILITY FUNCTIONS ---
+        function generateAccessCode(group, color) {
+            const colorData = COLORS.find(c => c.name.toLowerCase() === color.toLowerCase());
+            return `${group}-${colorData ? colorData.abbr : color.toUpperCase().slice(0, 2)}`;
+        }
+        
+        // Helper to pad BIB number (e.g., 1 -> '001')
+        function formatBibNumber(num) {
+            return `${BIB_PREFIX}${String(num).padStart(3, '0')}`;
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const milliseconds = Math.floor((ms % 1000) / 10);
+            
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
+        }
+        
+        // --- ADMIN LOGIN LOGIC ---
+        function adminLogin() {
+            const code = document.getElementById('admin-code-input').value.trim();
+            const messageElement = document.getElementById('admin-login-message');
+            
+            if (code === ADMIN_CODE) {
+                isAdminLoggedIn = true;
+                messageElement.innerHTML = '<span style="color: var(--color-primary); font-weight: bold;">Login successful!</span>';
+                document.getElementById('admin-login-view').classList.remove('active');
+                document.getElementById('admin-view').classList.add('active');
+                document.getElementById('admin-toggle').classList.add('active');
+                renderLeaderboard();
+            } else {
+                isAdminLoggedIn = false;
+                messageElement.innerHTML = '<span style="color: var(--color-red); font-weight: bold;">Invalid admin code.</span>';
+            }
+        }
+        
+        function switchView(view) {
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.view-btn').forEach(el => el.classList.remove('active'));
+            
+            if (view === 'admin') {
+                if (isAdminLoggedIn) {
+                    document.getElementById('admin-view').classList.add('active');
+                } else {
+                    document.getElementById('admin-login-view').classList.add('active');
+                }
+            } else { 
+                document.getElementById('volunteer-view').classList.add('active');
+            }
+            
+            document.getElementById(`${view}-toggle`).classList.add('active');
+        }
+
+        // --- GROUP/WAVE NUMBER MANAGEMENT ---
+        function isValidWaveNumber(group, newNumber) {
+            if (newNumber < 1) return false;
+            
+            if (group === 1 && newNumber % 2 === 0) {
+                return false;
+            }
+            if (group === 2 && newNumber % 2 !== 0) {
+                return false;
+            }
+            return true;
+        }
+
+        function updateWaveNumber(group) {
+            const inputElement = document.getElementById(`wave${group}-number`);
+            const newNumber = parseInt(inputElement.value);
+            
+            if (isValidWaveNumber(group, newNumber)) {
+                waves[group].number = newNumber;
+            } else {
+                alert(`Group ${group} wave numbers must be ${group === 1 ? 'odd (1, 3, 5...)' : 'even (2, 4, 6...)'}. Reverting input.`);
+                inputElement.value = waves[group].number;
+            }
+             
+            if (activeVolunteer && activeVolunteer.wave == group) {
+                 updateAllTimers(true);
+            }
+        }
+        
+        function updateColorStatus(group, color, newStatus) {
+            if (!isAdminLoggedIn) return;
+            
+            const cardElement = document.getElementById(`card-w${group}-${color}`);
+            const timer = waves[group].timers[color];
+            
+            if (newStatus === 'na') {
+                if (timer.running) {
+                    alert("Cannot set status to NA while the timer is running. Please stop or reset the group first.");
+                    document.getElementById(`status-w${group}-${color}`).value = 'active';
+                    return;
+                }
+                cardElement.classList.add('na');
+            } else {
+                cardElement.classList.remove('na');
+            }
+
+            timer.status = newStatus;
+            
+            if (activeVolunteer && activeVolunteer.wave == group && activeVolunteer.color == color) {
+                renderVolunteerDashboard(activeVolunteer.wave, activeVolunteer.color);
+            }
+        }
+        
+        function updateBib(group, color) {
+            if (!isAdminLoggedIn) return;
+            
+            const inputElement = document.getElementById(`bib-w${group}-${color}`);
+            const bibPartial = inputElement.value.trim();
+            
+            // Basic validation for numbers only (optional, but good practice)
+            if (bibPartial.match(/^\d+$/) || bibPartial === '') {
+                waves[group].timers[color].bib = bibPartial ? formatBibNumber(parseInt(bibPartial)) : '';
+            } else {
+                alert("Please enter only numbers for the BIB extension.");
+                inputElement.value = waves[group].timers[color].bib.replace(BIB_PREFIX, '');
+            }
+        }
+
+        
+        function incrementGroup(group) {
+            if (!isAdminLoggedIn) return;
+
+            const timers = waves[group].timers;
+            const allStopped = Object.values(timers).every(t => !t.running);
+            const anyTimeRecorded = Object.values(timers).some(t => t.elapsed > 0);
+
+            if (!allStopped) {
+                alert(`Please stop all running timers in Group ${group} before moving to the next wave.`);
+                return;
+            }
+            
+            if (anyTimeRecorded) {
+                const newNumber = waves[group].number + 2;
+                const inputElement = document.getElementById(`wave${group}-number`);
+                
+                waves[group].number = newNumber;
+                inputElement.value = newNumber;
+
+                resetWaveTimers(group);
+                
+                // Reset all color statuses to 'active' and clear BIBs for the new wave run
+                Object.keys(waves[group].timers).forEach(color => {
+                    waves[group].timers[color].status = 'active';
+                    waves[group].timers[color].bib = ''; // Clear BIB
+                    
+                    document.getElementById(`status-w${group}-${color}`).value = 'active';
+                    document.getElementById(`card-w${group}-${color}`).classList.remove('na');
+                    document.getElementById(`bib-w${group}-${color}`).value = ''; // Clear BIB input field
+                });
+
+                document.getElementById(`start-wave-btn-${group}`).disabled = false;
+                document.getElementById(`reset-wave-btn-${group}`).disabled = true;
+
+                updateAllTimers(true);
+            } else {
+                 alert(`Cannot move to the next wave (Wave ${waves[group].number + 2}) for Group ${group} because no times were recorded in the current wave.`);
+            }
+        }
+        // --- END GROUP/WAVE NUMBER MANAGEMENT ---
+
+
+        // --- TIMER CONTROL ---
+        function startWave(group) {
+            if (!isAdminLoggedIn) return;
+            
+            const now = Date.now();
+            let groupWasStarted = false;
+            
+            updateWaveNumber(group); 
+            
+            let missingBibs = [];
+
+            Object.keys(waves[group].timers).forEach(color => {
+                const timer = waves[group].timers[color];
+
+                if (timer.status === 'active' && !timer.bib) {
+                    // Check for missing BIBs on active timers
+                    missingBibs.push(color.charAt(0).toUpperCase() + color.slice(1));
+                }
+                
+                // CRITICAL: Only start if timer is not running AND status is 'active'
+                if (!timer.running && timer.status === 'active') {
+                    timer.running = true;
+                    timer.startTime = now - timer.elapsed;
+                    groupWasStarted = true;
+                } else if (timer.status === 'na') {
+                    // Ensure NA timers are marked stopped and time is zeroed if admin starts the wave
+                    timer.running = false;
+                }
+            });
+            
+            if (missingBibs.length > 0) {
+                 alert(`Cannot start: Please enter BIB numbers for the following ACTIVE colors: ${missingBibs.join(', ')}.`);
+                 // Prevent start if any active timer is missing a BIB
+                 Object.keys(waves[group].timers).forEach(color => {
+                     waves[group].timers[color].running = false;
+                 });
+                 groupWasStarted = false;
+                 updateAllTimers(true);
+                 return;
+            }
+
+
+            if (groupWasStarted) {
+                document.getElementById(`start-wave-btn-${group}`).disabled = true;
+                document.getElementById(`reset-wave-btn-${group}`).disabled = true; 
+            }
+            
+            updateAllTimers(true); 
+        }
+        
+        function resetWaveTimers(group) {
+            Object.keys(waves[group].timers).forEach(color => {
+                waves[group].timers[color].running = false;
+                waves[group].timers[color].elapsed = 0;
+                waves[group].timers[color].startTime = 0;
+                document.getElementById(`timer-w${group}-${color}`).textContent = formatTime(0);
+            });
+        }
+        
+        function resetWave(group) {
+            if (!isAdminLoggedIn) return;
+            
+            const timers = waves[group].timers;
+            const anyTimeRecorded = Object.values(timers).some(t => t.elapsed > 0);
+
+            if (anyTimeRecorded) {
+                 if (!confirm(`Are you sure you want to reset all timers for Group ${group}, Wave ${waves[group].number}? The recorded times WILL remain on the leaderboard.`)) {
+                    return;
+                }
+            }
+            
+            resetWaveTimers(group); 
+
+            document.getElementById(`start-wave-btn-${group}`).disabled = false;
+            document.getElementById(`reset-wave-btn-${group}`).disabled = true; 
+            
+            if (activeVolunteer && activeVolunteer.wave == group) {
+                    renderVolunteerDashboard(activeVolunteer.wave, activeVolunteer.color);
+            }
+            updateAllTimers(true);
+        }
+        
+        function stopColor(group, color) {
+            const timer = waves[group].timers[color];
+            if (timer.running) {
+                timer.running = false;
+                timer.elapsed = Date.now() - timer.startTime;
+                
+                const colorInfo = COLORS.find(c => c.name.toLowerCase() === color.toLowerCase());
+                
+                // --- Store BIB with the recorded time ---
+                globalStoppedTimes.push({ 
+                    group: parseInt(group), 
+                    color: colorInfo.name, 
+                    timeMs: timer.elapsed,
+                    waveNumber: waves[group].number,
+                    bib: timer.bib // Include the current BIB number
+                });
+                renderLeaderboard(); 
+                // --- End Store BIB ---
+            }
+        }
+        
+        function resetGlobalLeaderboard() {
+            if (!isAdminLoggedIn) return;
+            
+            if (confirm("Are you sure you want to completely clear the entire leaderboard and all stopped times across both groups? This action cannot be undone.")) {
+                globalStoppedTimes = [];
+                resetWaveTimers(1);
+                resetWaveTimers(2);
+                document.getElementById(`start-wave-btn-1`).disabled = false;
+                document.getElementById(`reset-wave-btn-1`).disabled = true;
+                document.getElementById(`start-wave-btn-2`).disabled = false;
+                document.getElementById(`reset-wave-btn-2`).disabled = true;
+                
+                renderLeaderboard();
+            }
+        }
+
+
+        // Timer interval function - runs every 50ms 
+        function updateAllTimers(forceUpdate = false) {
+            const now = Date.now();
+            
+            Object.keys(waves).forEach(group => {
+                const groupNum = parseInt(group);
+
+                Object.keys(waves[group].timers).forEach(color => {
+                    const timer = waves[group].timers[color];
+                    
+                    if (timer.running) {
+                        timer.elapsed = now - timer.startTime;
+                    }
+
+                    const display = formatTime(timer.elapsed);
+                    
+                    // 2. Update Admin UI 
+                    const adminElement = document.getElementById(`timer-w${groupNum}-${color}`);
+                    if (adminElement) {
+                        adminElement.textContent = display;
+                    }
+                    
+                    // 3. Update Volunteer UI 
+                    if (activeVolunteer && activeVolunteer.wave == groupNum && activeVolunteer.color == color) {
+                        const volunteerElement = document.getElementById(`volunteer-timer-${groupNum}-${color}`);
+                        const stopBtn = document.getElementById('volunteer-stop-btn');
+                        
+                        if (volunteerElement) {
+                            volunteerElement.textContent = display; 
+                        }
+
+                        if (stopBtn) {
+                            // Stop button disabled if timer is not running OR if status is NA
+                            stopBtn.disabled = !timer.running || timer.status === 'na';
+                        }
+                        
+                        const waveNumElement = document.getElementById('volunteer-group-wave-num');
+                        const bibElement = document.getElementById('volunteer-bib');
+                        if (waveNumElement) {
+                            waveNumElement.textContent = `Group ${groupNum} | Wave ${waves[groupNum].number}`;
+                        }
+                        if (bibElement) {
+                             bibElement.textContent = timer.bib || 'N/A'; // Update BIB display
+                        }
+                    }
+                });
+                
+                // Update button states
+                const resetBtn = document.getElementById(`reset-wave-btn-${groupNum}`);
+                const startBtn = document.getElementById(`start-wave-btn-${groupNum}`);
+                const nextBtn = document.getElementById(`next-wave-btn-${groupNum}`);
+
+                const allStopped = Object.values(waves[groupNum].timers).every(t => !t.running);
+                const anyTimeRecorded = Object.values(waves[groupNum].timers).some(t => t.elapsed > 0 && t.status === 'active');
+                
+                if (startBtn) startBtn.disabled = !allStopped;
+                
+                // Reset button is enabled if any timer (active or NA) has elapsed time > 0 and all are stopped
+                if (resetBtn) resetBtn.disabled = !allStopped || !Object.values(waves[groupNum].timers).some(t => t.elapsed > 0);
+                
+                // Next button is enabled only if all are stopped AND at least one ACTIVE timer has time recorded.
+                if (nextBtn) nextBtn.disabled = !allStopped || !anyTimeRecorded;
+            });
+        }
+
+
+        // --- LEADERBOARD RENDERING (Unified) ---
+        function renderLeaderboard() {
+            const leaderboardContainer = document.getElementById('global-leaderboard');
+            let stoppedTimes = [...globalStoppedTimes]; 
+
+            if (stoppedTimes.length === 0) {
+                leaderboardContainer.innerHTML = 'No times recorded.';
+                return;
+            }
+
+            stoppedTimes.sort((a, b) => a.timeMs - b.timeMs);
+            
+            let html = `
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>BIB</th>
+                            <th>Group-Wave #</th>
+                            <th>Color</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            stoppedTimes.forEach((item, index) => {
+                const colorData = COLORS.find(c => c.name === item.color);
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.bib || 'N/A'}</td>
+                        <td>${item.group}-${item.waveNumber}</td>
+                        <td style="color: ${colorData.hex}; font-weight: bold;">${item.color}</td>
+                        <td class="stopped-time">${formatTime(item.timeMs)}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            leaderboardContainer.innerHTML = html;
+        }
+
+        // --- VOLUNTEER LOGIN & DASHBOARD ---
+        function volunteerLogin() {
+            const code = document.getElementById('access-code-input').value.trim().toUpperCase();
+            const messageElement = document.getElementById('login-message');
+            const dashboardElement = document.getElementById('volunteer-dashboard');
+            
+            if (volunteers[code]) {
+                activeVolunteer = volunteers[code];
+                renderVolunteerDashboard(activeVolunteer.wave, activeVolunteer.color);
+                
+                messageElement.style.display = 'none';
+                dashboardElement.style.display = 'block';
+                
+                setTimeout(() => {
+                    updateAllTimers(true); 
+                }, 50);
+
+            } else {
+                activeVolunteer = null;
+                messageElement.innerHTML = '<span style="color: var(--color-red); font-weight: bold;">Invalid access code. Please try again.</span>';
+                messageElement.style.display = 'block';
+                dashboardElement.style.display = 'none';
+            }
+        }
+
+        // Volunteer Dashboard rendering (HTML structure only)
+        function renderVolunteerDashboard(group, color) {
+            const colorInfo = COLORS.find(c => c.name.toLowerCase() === color.toLowerCase());
+            const timer = waves[group].timers[color];
+            const status = timer.status;
+            
+            const dashboard = document.getElementById('volunteer-dashboard');
+
+            let timerDisplayContent;
+            let timerClass = 'volunteer-timer';
+            let buttonDisabled = !timer.running || status === 'na';
+            
+            // Determine timer display content based on status and running state
+            if (status === 'na') {
+                timerDisplayContent = 'N/A: Not Running This Wave';
+                timerClass += ' na-status';
+            } else if (timer.running) {
+                timerDisplayContent = formatTime(timer.elapsed);
+            } else if (timer.elapsed > 0) {
+                 timerDisplayContent = formatTime(timer.elapsed);
+                 buttonDisabled = true; // Timer stopped
+            } else {
+                timerDisplayContent = '00:00:00';
+            }
+
+
+            dashboard.innerHTML = `
+                <div class="volunteer-dashboard">
+                    <div class="volunteer-header">
+                        <div class="volunteer-wave-number" id="volunteer-group-wave-num">Group ${group} | Wave ${waves[group].number}</div>
+                        <h2 style="margin-bottom: 0;">Your Assignment</h2>
+                    </div>
+
+                    <div class="volunteer-color-display">
+                        <div class="volunteer-color-box" style="background: ${colorInfo.hex};"></div>
+                        <div class="volunteer-color-name">${colorInfo.name}</div>
+                    </div>
+
+                    <div style="font-size: 14px; color: #666; margin: 10px 0;">Participant BIB: <span style="font-weight: bold; color: var(--color-dark);" id="volunteer-bib">${timer.bib || 'N/A'}</span></div>
+
+                    <div style="font-size: 14px; color: #666; margin: 10px 0;">Track and stop your participant's time</div>
+
+                    <div class="${timerClass}" id="volunteer-timer-${group}-${color}">${timerDisplayContent}</div>
+
+                    <div class="volunteer-controls">
+                        <button class="btn-volunteer-stop" id="volunteer-stop-btn" onclick="volunteerStop('${group}', '${color}')" ${buttonDisabled ? 'disabled' : ''}>STOP</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function volunteerStop(group, color) {
+            stopColor(group, color);
+            renderVolunteerDashboard(group, color); 
+        }
+
+        // --- INITIALIZATION ---
+        function initializeUI() {
+            const colorNames = COLORS.map(c => c.name.toLowerCase());
+            
+            for (let groupNum = 1; groupNum <= 2; groupNum++) {
+                waves[groupNum].number = groupNum === 1 ? 1 : 2;
+                document.getElementById(`wave${groupNum}-number`).value = waves[groupNum].number;
+
+
+                colorNames.forEach(color => {
+                    const colorData = COLORS.find(c => c.name.toLowerCase() === color);
+                    const waveCode = generateAccessCode(groupNum, color);
+                    
+                    // Initialize with status: 'active' and empty BIB
+                    waves[groupNum].timers[color] = { elapsed: 0, running: false, startTime: 0, status: 'active', bib: '' };
+                    volunteers[waveCode] = { wave: groupNum, color: color, code: waveCode };
+                    
+                    document.getElementById(`wave${groupNum}-colors`).insertAdjacentHTML('beforeend', createColorCardHTML(groupNum, color, colorData));
+                    document.getElementById(`wave${groupNum}-access-codes`).insertAdjacentHTML('beforeend', `<span class="access-code">${waveCode}</span>`);
+                });
+                
+                document.getElementById(`start-wave-btn-${groupNum}`).disabled = false;
+                document.getElementById(`reset-wave-btn-${groupNum}`).disabled = true;
+                document.getElementById(`next-wave-btn-${groupNum}`).disabled = true; 
+            }
+
+            if (!intervalId) {
+                intervalId = setInterval(updateAllTimers, 50); 
+            }
+        }
+
+        function createColorCardHTML(groupNum, color, colorData) {
+            return `
+                <div class="color-card" id="card-w${groupNum}-${color}">
+                    <div class="color-name">${colorData.name}</div>
+                    
+                    <div class="bib-input-group">
+                        <span>${BIB_PREFIX}</span>
+                        <input type="text" 
+                               id="bib-w${groupNum}-${color}" 
+                               maxlength="3" 
+                               placeholder="000" 
+                               oninput="this.value = this.value.replace(/[^0-9]/g, ''); updateBib(${groupNum}, '${color}')">
+                    </div>
+
+                    <div class="color-indicator" style="background: ${colorData.hex};">
+                         <select class="color-status-select" id="status-w${groupNum}-${color}" 
+                                onchange="updateColorStatus(${groupNum}, '${color}', this.value)">
+                            <option value="active" selected>Active</option>
+                            <option value="na">NA</option>
+                        </select>
+                    </div>
+                    <div class="timer-display" id="timer-w${groupNum}-${color}">00:00:00</div>
+                </div>
+            `;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', initializeUI);
+    </script>
+</body>
+</html>
