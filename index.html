@@ -667,6 +667,79 @@
 
         // --- SUPABASE SYNC ---
         const API_BASE = '/.netlify/functions';
+
+        // Load Supabase JS via CDN and initialize realtime subscriptions
+        (function loadSupabaseScript(){
+            const url = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
+            const s = document.createElement('script');
+            s.src = url;
+            s.onload = () => { console.log('Supabase JS loaded'); };
+            s.onerror = () => { console.error('Failed to load Supabase JS'); };
+            document.head.appendChild(s);
+        })();
+
+        let supabaseRealtimeClient = null;
+
+        async function initSupabaseRealtime() {
+            try {
+                const res = await fetch(`${API_BASE}/get-config`);
+                const cfg = await res.json();
+                if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) throw new Error('Missing config');
+
+                // Wait until the supabase global is available
+                const waitForSupabase = () => new Promise((resolve, reject) => {
+                    const max = 5000; let waited = 0;
+                    const tick = () => {
+                        if (window.supabase && typeof window.supabase.createClient === 'function') return resolve();
+                        waited += 100;
+                        if (waited > max) return reject(new Error('Supabase script not available'));
+                        setTimeout(tick, 100);
+                    };
+                    tick();
+                });
+                await waitForSupabase();
+
+                supabaseRealtimeClient = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+
+                // Subscribe to timers changes
+                const timersChannel = supabaseRealtimeClient.channel('realtime:timers')
+                  .on('postgres_changes', { event: '*', schema: 'public', table: 'timers' }, payload => {
+                      const newRow = payload.new;
+                      if (!newRow) return;
+                      const g = parseInt(newRow.group_number);
+                      if (!waves[g]) return;
+
+                      // Apply authoritative values
+                      if (newRow.wave_number) {
+                          waves[g].number = newRow.wave_number;
+                          const inputElement = document.getElementById(`wave${g}-number`);
+                          if (inputElement) inputElement.value = newRow.wave_number;
+                      }
+                      const isRunning = !!newRow.is_running;
+                      const elapsed = parseInt(newRow.elapsed_time) || 0;
+                      Object.keys(waves[g].timers).forEach(color => {
+                          const timer = waves[g].timers[color];
+                          timer.elapsed = elapsed;
+                          timer.running = isRunning && timer.status === 'active';
+                          timer.startTime = timer.running ? Date.now() - elapsed : 0;
+                      });
+                      updateAllTimers(true);
+                  })
+                  .subscribe();
+
+                // Subscribe to leaderboard inserts
+                const lbChannel = supabaseRealtimeClient.channel('realtime:leaderboard')
+                  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leaderboard' }, payload => {
+                      // New leaderboard row inserted; re-render
+                      renderLeaderboard();
+                  })
+                  .subscribe();
+
+                console.log('Supabase realtime subscriptions registered');
+            } catch (err) {
+                console.error('Realtime init failed:', err);
+            }
+        }
         
         async function saveToSupabase(bibNumber, color, groupNumber, stoppedTime) {
             try {
@@ -708,6 +781,45 @@
                 return data;
             } catch (error) {
                 console.error('Error saving timer state:', error);
+            }
+        }
+
+        // Fetch timers from Supabase and apply to local state
+        async function fetchTimersFromSupabase() {
+            try {
+                const response = await fetch(`${API_BASE}/get-timer`);
+                const json = await response.json();
+                if (!response.ok) throw new Error(json.error || 'Failed to fetch timers');
+
+                const rows = json.data || [];
+                rows.forEach(row => {
+                    const g = parseInt(row.group_number);
+                    if (!waves[g]) return;
+
+                    // Sync wave number
+                    if (row.wave_number && waves[g].number !== row.wave_number) {
+                        waves[g].number = row.wave_number;
+                        const inputElement = document.getElementById(`wave${g}-number`);
+                        if (inputElement) inputElement.value = row.wave_number;
+                    }
+
+                    // If group is running, set startTime so elapsed displays correctly
+                    const isRunning = !!row.is_running;
+                    const elapsed = parseInt(row.elapsed_time) || 0;
+
+                    Object.keys(waves[g].timers).forEach(color => {
+                        const timer = waves[g].timers[color];
+                        timer.elapsed = elapsed;
+                        timer.running = isRunning && timer.status === 'active';
+                        timer.startTime = timer.running ? Date.now() - elapsed : 0;
+                    });
+                });
+
+                // Update UI after applying remote state
+                updateAllTimers(true);
+                renderLeaderboard();
+            } catch (err) {
+                console.error('Error fetching timers from Supabase:', err);
             }
         }
 
@@ -793,6 +905,10 @@
             if (activeVolunteer && activeVolunteer.wave == group) {
                  updateAllTimers(true);
             }
+            // Persist wave number change
+            if (isAdminLoggedIn) {
+                saveTimerState(parseInt(group), waves[group].number, false, 0);
+            }
         }
         
         function updateColorStatus(group, color, newStatus) {
@@ -870,6 +986,8 @@
                 document.getElementById(`reset-wave-btn-${group}`).disabled = true;
 
                 updateAllTimers(true);
+                // Persist new wave number and reset state
+                saveTimerState(parseInt(group), waves[group].number, false, 0);
             } else {
                  alert(`Cannot move to the next wave (Wave ${waves[group].number + 2}) for Group ${group} because no times were recorded in the current wave.`);
             }
@@ -924,6 +1042,11 @@
                 document.getElementById(`reset-wave-btn-${group}`).disabled = true; 
             }
             
+            // Persist group timer state to backend (running)
+            if (groupWasStarted) {
+                saveTimerState(parseInt(group), waves[group].number, true, 0);
+            }
+
             updateAllTimers(true); 
         }
         
@@ -957,6 +1080,8 @@
                     renderVolunteerDashboard(activeVolunteer.wave, activeVolunteer.color);
             }
             updateAllTimers(true);
+            // Persist group timer reset to backend
+            saveTimerState(parseInt(group), waves[group].number, false, 0);
         }
         
         function stopColor(group, color) {
@@ -981,6 +1106,14 @@
                     saveToSupabase(timer.bib, colorInfo.name, parseInt(group), timer.elapsed);
                 }
                 
+                // If no timers are running in this group, persist group stopped state and elapsed
+                const anyRunning = Object.values(waves[group].timers).some(t => t.running);
+                if (!anyRunning) {
+                    // Use max elapsed as group's elapsed snapshot
+                    const maxElapsed = Math.max(...Object.values(waves[group].timers).map(t => t.elapsed || 0));
+                    saveTimerState(parseInt(group), waves[group].number, false, maxElapsed);
+                }
+
                 renderLeaderboard(); 
                 // --- End Store BIB ---
             }
@@ -1242,6 +1375,16 @@
             if (!intervalId) {
                 intervalId = setInterval(updateAllTimers, 50); 
             }
+            // Initial sync from backend
+            fetchTimersFromSupabase();
+            // Initialize realtime subscriptions (push updates)
+            initSupabaseRealtime();
+
+            // Poll backend for timers and leaderboard periodically
+            setInterval(() => {
+                fetchTimersFromSupabase();
+                renderLeaderboard();
+            }, 2000);
         }
 
         function createColorCardHTML(groupNum, color, colorData) {

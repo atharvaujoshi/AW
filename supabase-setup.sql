@@ -25,6 +25,25 @@ CREATE TABLE IF NOT EXISTS timers (
 CREATE INDEX IF NOT EXISTS idx_leaderboard_group ON leaderboard(group_number);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_color ON leaderboard(color);
 
--- Enable realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE leaderboard;
-ALTER PUBLICATION supabase_realtime ADD TABLE timers;
+-- Enable realtime (add tables to publication only if not already present)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'leaderboard'
+  ) THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE leaderboard';
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'timers'
+  ) THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE timers';
+  END IF;
+END
+$$;
